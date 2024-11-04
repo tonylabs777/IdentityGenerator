@@ -2,6 +2,7 @@ import sqlite3
 from random import randint, choice
 import os
 from unidecode import unidecode
+import csv
 
 PASSWORD_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
 RESOURCES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources.db')
@@ -222,9 +223,25 @@ def delete_information_by_id():
         print("Invalid input! ID must be a number.")
 
 def delete_all_information():
+    """Delete the information table completely and recreate it."""
     if input('Delete all information? (y/n): ').strip().lower() == 'y':
-        cursor_data.execute('DELETE FROM information')
-        print('Delete all information successfull')
+        with data:
+            cursor_data.execute('DROP TABLE IF EXISTS information')
+        create_table(data)
+        print('All information deleted and table recreated successfully.')
+
+
+def export_to_csv():
+    cursor_data.execute('SELECT * FROM information')
+    records = cursor_data.fetchall()
+    CSV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'personal_information.csv')
+
+    with open(CSV_PATH, mode='w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['ID', 'Name', 'Location', 'Birthday', 'Email', 'Password'])
+        writer.writerows(records)
+    
+    print('Data was exported to personal_information.csv')
 
 def main():
     """Main function to run the personal information generator."""
@@ -235,7 +252,8 @@ def main():
         4: get_information_by_id,
         5: update_information_by_id,
         6: delete_information_by_id,
-        7: delete_all_information
+        7: delete_all_information,
+        8: export_to_csv
     }
 
     while True:
